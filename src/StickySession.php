@@ -71,7 +71,7 @@ class StickySession
         } else {
             $sessionId = $this->extractSessionId($data);
             $requestId = $sessionId ? crc32($sessionId) : ($fd - 1);
-            $workerId = $requestId % $server->setting['worker_num'];
+            $workerId = abs($requestId % $server->setting['worker_num']);
             $this->dispatchMap[$fd] = $workerId;
         }
         if ($type == self::CONNECTION_CLOSE) {
