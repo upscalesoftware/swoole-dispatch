@@ -109,10 +109,15 @@ Send some test requests:
 
 ### Sticky Session
 
-Sticky session also known as session affinity dispatches request to worker processes by Session ID.
-It recognizes the Session ID passed in the query string and cookie headers in that order of priority.
+Dispatch requests to workers according to session ID for sticky session also known as session affinity.
+All requests belonging to a session will be dispatched to a dedicated worker process.
+Session ID is recognized in a query string and cookie headers in that order of priority.
 
-Dispatch of guest requests without the session context wll be delegated to a specified fallback strategy.
+This strategy is complimentary to the session locking and can compensate for the lack of thereof.
+It prevents race conditions in workers competing for an exclusive lock of the same session ID.
+Workers only pick up requests of their respective sessions as well as guest requests without the session context.
+
+Dispatch of the guest requests wll be delegated to a specified fallback strategy of choice.
 
 Register the sticky session dispatcher with fallback to the Round-Robin for guests:
 ```php
