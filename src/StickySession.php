@@ -9,9 +9,16 @@ namespace Upscale\Swoole\Dispatch;
  * This strategy is complimentary to the session locking and can compensate for the lack of thereof.
  * It prevents race conditions in workers competing for an exclusive lock of the same session ID.
  * Workers only pick up requests of their respective sessions as well as anonymous requests.
+ * 
+ * Dispatch of guest requests without the session context wll be delegated to a specified strategy.
  */
 class StickySession implements DispatchInterface
 {
+    /**
+     * @var DispatchInterface
+     */
+    protected $guestDispatch;
+    
     /**
      * @var string
      */
@@ -35,11 +42,13 @@ class StickySession implements DispatchInterface
     /**
      * Inject dependencies
      *
+     * @param DispatchInterface $guestDispatch
      * @param string $sessionName
      * @param string $sessionIdLength
      */
-    public function __construct($sessionName, $sessionIdLength)
+    public function __construct(DispatchInterface $guestDispatch, $sessionName, $sessionIdLength)
     {
+        $this->guestDispatch = $guestDispatch;
         $this->sidMarker = $sessionName . '=';
         $this->sidMarkerLength = strlen($this->sidMarker);
         $this->sidLength = $sessionIdLength;
@@ -54,7 +63,7 @@ class StickySession implements DispatchInterface
             $workerId = $this->dispatchMap[$fd];
         } else {
             $sessionId = $this->extractSessionId($data);
-            $requestId = $sessionId ? crc32($sessionId) : ($fd - 1);
+            $requestId = $sessionId ? crc32($sessionId) : $this->guestDispatch->__invoke($server, $fd, $type, $data);
             $workerId = abs($requestId % $server->setting['worker_num']);
             $this->dispatchMap[$fd] = $workerId;
         }

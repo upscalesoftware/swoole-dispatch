@@ -23,13 +23,14 @@ composer require upscale/swoole-dispatch
 Sticky session also known as session affinity dispatches request to worker processes by Session ID.
 It recognizes the Session ID passed in the query string and cookie headers in that order of priority.
 
-Anonymous requests are being dispatched as in the [fixed mode](https://www.swoole.co.uk/docs/modules/swoole-server/configuration#dispatch_mode).
+Dispatch of guest requests without the session context wll be delegated to a specified fallback strategy.
 
 Register the sticky session dispatcher:
 ```php
 require 'vendor/autoload.php';
 
 $dispatcher = new \Upscale\Swoole\Dispatch\StickySession(
+    new \Upscale\Swoole\Dispatch\RoundRobin(),
     session_name(),
     ini_get('session.sid_length')
 );
