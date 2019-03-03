@@ -88,6 +88,8 @@ class StickySession
      */
     protected function extractSessionId($message)
     {
+        // Ignore request body that may contain session IDs in URLs
+        $message = strstr($message, "\r\n\r\n", true);
         // Query string has priority over cookies as request line precedes headers  
         $pos = strpos($message, $this->sidMarker);
         if ($pos !== false) {
