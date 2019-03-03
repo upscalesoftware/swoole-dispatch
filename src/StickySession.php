@@ -10,18 +10,8 @@ namespace Upscale\Swoole\Dispatch;
  * It prevents race conditions in workers competing for an exclusive lock of the same session ID.
  * Workers only pick up requests of their respective sessions as well as anonymous requests.
  */
-class StickySession
+class StickySession implements DispatchInterface
 {
-    /**#@+
-     * Connection dispatch type
-     *
-     * @link https://www.swoole.co.uk/docs/modules/swoole-server/configuration#dispatch_func
-     */
-    const CONNECTION_FETCH  = 10;
-    const CONNECTION_START  = 5;
-    const CONNECTION_CLOSE  = 4;
-    /**#@-*/
-
     /**
      * @var string
      */
@@ -56,15 +46,9 @@ class StickySession
     }
 
     /**
-     * Resolve requests to corresponding workers based on session ID
-     *
-     * @param \Swoole\Http\Server $server
-     * @param int $fd Client ID number
-     * @param int $type Dispatch type
-     * @param string $data Request packet data (0-8180 bytes)
-     * @return int Worker ID number
+     * {@inheritdoc}
      */
-    public function __invoke(\Swoole\Http\Server $server, $fd, $type, $data)
+    public function __invoke(\Swoole\Server $server, $fd, $type, $data)
     {
         if (array_key_exists($fd, $this->dispatchMap)) {
             $workerId = $this->dispatchMap[$fd];
