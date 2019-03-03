@@ -117,7 +117,7 @@ This strategy is complimentary to the session locking and can compensate for the
 It prevents race conditions in workers competing for an exclusive lock of the same session ID.
 Workers only pick up requests of their respective sessions as well as guest requests without the session context.
 
-Dispatch of the guest requests wll be delegated to a specified fallback strategy of choice.
+Dispatch of guest requests will be delegated to a specified fallback strategy of choice.
 
 Register the sticky session dispatcher with fallback to the Round-Robin for guests:
 ```php
