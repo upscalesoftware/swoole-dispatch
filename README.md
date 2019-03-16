@@ -32,17 +32,15 @@ Register the dispatcher:
 ```php
 require 'vendor/autoload.php';
 
-$dispatcher = new \Upscale\Swoole\Dispatch\FixedClient();
-
 $server = new \Swoole\Http\Server('127.0.0.1', 8080);
 $server->set([
-    'worker_num'    => 4,
-    'dispatch_func' => $dispatcher,
+    'dispatch_func' => new \Upscale\Swoole\Dispatch\FixedClient(),
 ]);
 
 $server->on('request', function ($request, $response) {
+    $workerPid = getmypid();
     $response->header('Content-Type', 'text/plain');
-    $response->end('Served by worker PID ' . getmypid() . PHP_EOL);
+    $response->end("Served by worker process $workerPid\n");
 });
 
 $server->start();
@@ -52,22 +50,20 @@ Send some test requests:
 - Different connections are distributed between all workers:
     ```bash
     curl -s 'http://127.0.0.1:8080/?[1-4]' -H 'Connection: close'
-    ```
-    ```
-    Served by worker PID 21601
-    Served by worker PID 21602
-    Served by worker PID 21603
-    Served by worker PID 21604
+
+    Served by worker process 21601
+    Served by worker process 21602
+    Served by worker process 21603
+    Served by worker process 21604
     ```
 - Every connection is dispatched to a dedicated worker:
     ```bash
     curl -s 'http://127.0.0.1:8080/?[1-4]'
-    ```
-    ```
-    Served by worker PID 21602
-    Served by worker PID 21602
-    Served by worker PID 21602
-    Served by worker PID 21602
+
+    Served by worker process 21602
+    Served by worker process 21602
+    Served by worker process 21602
+    Served by worker process 21602
     ```
 
 ### Round Robin
@@ -76,22 +72,9 @@ Dispatch requests to workers in circular order equivalent to the built-in [polli
 
 Register the dispatcher:
 ```php
-require 'vendor/autoload.php';
-
-$dispatcher = new \Upscale\Swoole\Dispatch\RoundRobin();
-
-$server = new \Swoole\Http\Server('127.0.0.1', 8080);
 $server->set([
-    'worker_num'    => 4,
-    'dispatch_func' => $dispatcher,
+    'dispatch_func' => new \Upscale\Swoole\Dispatch\RoundRobin(),
 ]);
-
-$server->on('request', function ($request, $response) {
-    $response->header('Content-Type', 'text/plain');
-    $response->end('Served by worker PID ' . getmypid() . PHP_EOL);
-});
-
-$server->start();
 ```
 
 Send some test requests:
@@ -99,12 +82,11 @@ Send some test requests:
     ```bash
     curl -s 'http://127.0.0.1:8080/?[1-4]' -H 'Connection: close'
     curl -s 'http://127.0.0.1:8080/?[1-4]'
-    ```
-    ```
-    Served by worker PID 21601
-    Served by worker PID 21602
-    Served by worker PID 21603
-    Served by worker PID 21604
+
+    Served by worker process 21601
+    Served by worker process 21602
+    Served by worker process 21603
+    Served by worker process 21604
     ```
 
 ### Sticky Session
@@ -121,59 +103,34 @@ Dispatch of guest requests will be delegated to a specified fallback strategy of
 
 Register the sticky session dispatcher with fallback to the Round-Robin for guests:
 ```php
-require 'vendor/autoload.php';
-
-$dispatcher = new \Upscale\Swoole\Dispatch\StickySession(
-    new \Upscale\Swoole\Dispatch\RoundRobin(),
-    session_name(),
-    ini_get('session.sid_length')
-);
-
-$server = new \Swoole\Http\Server('127.0.0.1', 8080);
 $server->set([
-    'worker_num'    => 4,
-    'dispatch_func' => $dispatcher,
+    'dispatch_func' => new \Upscale\Swoole\Dispatch\StickySession(
+        new \Upscale\Swoole\Dispatch\RoundRobin(),
+        session_name(),
+        ini_get('session.sid_length')
+    ),
 ]);
-
-$server->on('request', function ($request, $response) {
-    $response->header('Content-Type', 'text/plain');
-    $response->end('Served by worker PID ' . getmypid() . PHP_EOL);
-});
-
-$server->start();
 ```
 
 Send some test requests with and without the session context:
 - Guest requests are delegated to the fallback strategy Round-Robin:
     ```bash
     curl -s 'http://127.0.0.1:8080/?[1-4]'
-    ```
-    ```
-    Served by worker PID 21601
-    Served by worker PID 21602
-    Served by worker PID 21603
-    Served by worker PID 21604
+
+    Served by worker process 21601
+    Served by worker process 21602
+    Served by worker process 21603
+    Served by worker process 21604
     ```
 - Session requests are dispatched to a dedicated worker:
     ```bash
     curl -s 'http://127.0.0.1:8080/?PHPSESSID=ExampleSessionIdentifier11&[1-4]'
     curl -s 'http://127.0.0.1:8080/?[1-4]' -H 'Cookie: PHPSESSID=ExampleSessionIdentifier11'
-    ```
-    ```
-    Served by worker PID 21603
-    Served by worker PID 21603
-    Served by worker PID 21603
-    Served by worker PID 21603
-    ```
-    ```bash
-    curl -s 'http://127.0.0.1:8080/?PHPSESSID=ExampleSessionIdentifier22&[1-4]'
-    curl -s 'http://127.0.0.1:8080/?[1-4]' -H 'Cookie: PHPSESSID=ExampleSessionIdentifier22'
-    ```
-    ```
-    Served by worker PID 21604
-    Served by worker PID 21604
-    Served by worker PID 21604
-    Served by worker PID 21604
+
+    Served by worker process 21603
+    Served by worker process 21603
+    Served by worker process 21603
+    Served by worker process 21603
     ```
 
 ## Contributing
