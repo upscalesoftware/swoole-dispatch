@@ -1,14 +1,14 @@
 {
     "name": "upscale/swoole-dispatch",
     "description": "Request dispatch strategies for Swoole web-server",
-    "version": "2.0.1",
+    "version": "2.0.2",
     "keywords": [
         "Swoole", "request", "dispatch", "dispatcher", "worker",
         "round robin", "round-robin", "circular",
         "fixed", "client", "connection",
         "session", "sticky", "affinity"
     ],
-    "homepage": "https://github.com/upscalesoftware/swoole-sticky-session",
+    "homepage": "https://github.com/upscalesoftware/swoole-dispatch",
     "license": "Apache-2.0",
     "authors": [
         {
