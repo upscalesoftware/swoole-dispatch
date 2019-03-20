@@ -91,7 +91,7 @@ class StickyCookie implements DispatchInterface
         // Exclude request body from lookup scope
         $message = strstr($message, "\r\n\r\n", true);
         // Query string has priority over cookies as request line precedes headers
-        if (preg_match("/\b$this->cookieName=($this->valueFormat)/", $message, $matches)) {
+        if (preg_match("/\b$this->cookieName=($this->valueFormat)\b/", $message, $matches)) {
             return $matches[1];
         }  
         return null;
