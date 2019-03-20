@@ -61,14 +61,29 @@ class StickySession implements DispatchInterface
             $workerId = $this->dispatchMap[$fd];
         } else {
             $sessionId = $this->extractSessionId($data);
-            $requestId = $sessionId ? crc32($sessionId) : $this->guestDispatch->__invoke($server, $fd, $type, $data);
-            $workerId = abs($requestId % $server->setting['worker_num']);
+            if ($sessionId) {
+                $workerId = $this->resolveWorkerId($server, $sessionId);
+            } else {
+                $workerId = $this->guestDispatch->__invoke($server, $fd, $type, $data);
+            }
             $this->dispatchMap[$fd] = $workerId;
         }
         if ($type == self::CONNECTION_CLOSE) {
             unset($this->dispatchMap[$fd]);
         }
         return $workerId;
+    }
+
+    /**
+     * Resolve given request to a worker process to serve it
+     * 
+     * @param \Swoole\Server $server
+     * @param string $requestId
+     * @return int
+     */
+    protected function resolveWorkerId(\Swoole\Server $server, $requestId)
+    {
+        return abs(crc32($requestId) % $server->setting['worker_num']);
     }
 
     /**
