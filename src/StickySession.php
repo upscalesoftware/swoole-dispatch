@@ -16,11 +16,15 @@ class StickySession extends StickyCookie
      * Inject dependencies
      *
      * @param DispatchInterface $guestDispatch
-     * @param string $sessionName
-     * @param string $sessionIdLength
+     * @param string|null $sessionName
+     * @param string|null $sessionIdLength
      */
-    public function __construct(DispatchInterface $guestDispatch, $sessionName, $sessionIdLength)
+    public function __construct(DispatchInterface $guestDispatch, $sessionName = null, $sessionIdLength = null)
     {
-        parent::__construct($guestDispatch, $sessionName, '[0-9a-zA-Z,-]{' . $sessionIdLength . '}');
+        parent::__construct(
+            $guestDispatch,
+            $sessionName ?: session_name(),
+            '[0-9a-zA-Z,-]{' . ($sessionIdLength ?: '22,256') . '}'
+        );
     }
 }

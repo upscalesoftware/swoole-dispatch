@@ -105,9 +105,7 @@ Register the sticky session dispatcher with fallback to the Round-Robin for gues
 ```php
 $server->set([
     'dispatch_func' => new \Upscale\Swoole\Dispatch\StickySession(
-        new \Upscale\Swoole\Dispatch\RoundRobin(),
-        session_name(),
-        ini_get('session.sid_length')
+        new \Upscale\Swoole\Dispatch\RoundRobin()
     ),
 ]);
 ```
