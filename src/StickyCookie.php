@@ -55,7 +55,7 @@ class StickyCookie implements DispatchInterface
             $workerId = $this->dispatchMap[$fd];
         } else {
             $requestId = $this->extractCookieValue($data);
-            if ($requestId) {
+            if ($requestId !== null) {
                 $workerId = $this->resolveWorkerId($server, $requestId);
             } else {
                 $workerId = $this->fallback->__invoke($server, $fd, $type, $data);
