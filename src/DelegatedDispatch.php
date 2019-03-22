@@ -28,24 +28,35 @@ abstract class DelegatedDispatch extends ContextualDispatch
     /**
      * {@inheritdoc}
      */
+    public function __invoke(\Swoole\Server $server, $fd, $type, $data)
+    {
+        try {
+            return parent::__invoke($server, $fd, $type, $data);
+        } catch (\UnexpectedValueException $e) {
+            return $this->fallback->__invoke($server, $fd, $type, $data); 
+        }
+    }
+
+    /**
+     * {@inheritdoc}
+     * @throws \UnexpectedValueException
+     */
     protected function dispatch(\Swoole\Server $server, $fd, $type, $data)
     {
-        $requestId = $this->extractRequestId($data);
-        if ($requestId !== null) {
-            $workerId = $this->resolveWorkerId($server, $requestId);
-        } else {
-            $workerId = $this->fallback->__invoke($server, $fd, $type, $data);
-        }
-        return $workerId;
+        return $this->resolveWorkerId($server, $this->extractRequestId($data));
     }
 
     /**
      * Extract request identifying information from a request message
      * 
      * @param string $data
-     * @return string|null
+     * @return string
+     * @throws \InvalidArgumentException
      */
-    abstract protected function extractRequestId($data);
+    protected function extractRequestId($data)
+    {
+        throw new \UnexpectedValueException('Request has not been identified for dispatch purposes.');
+    }
 
     /**
      * Resolve given request identifier to a worker process

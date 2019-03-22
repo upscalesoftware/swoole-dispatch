@@ -47,6 +47,6 @@ class StickyCookie extends DelegatedDispatch
         if (preg_match("/\b$this->cookieName=($this->valueFormat)\b/", $data, $matches)) {
             return $matches[1];
         }  
-        return null;
+        return parent::extractRequestId($data);
     }
 }
