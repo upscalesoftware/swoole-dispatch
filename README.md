@@ -36,13 +36,10 @@ $server = new \Swoole\Http\Server('127.0.0.1', 8080);
 $server->set([
     'dispatch_func' => new \Upscale\Swoole\Dispatch\FixedClient(),
 ]);
-
-$server->on('request', function ($request, $response) {
-    $workerPid = getmypid();
+$server->on('request', function ($request, $response) use ($server) {
     $response->header('Content-Type', 'text/plain');
-    $response->end("Served by worker process $workerPid\n");
+    $response->end("Served by worker {$server->worker_id}\n");
 });
-
 $server->start();
 ```
 
@@ -51,19 +48,19 @@ Send some test requests:
     ```bash
     curl -s 'http://127.0.0.1:8080/?[1-4]' -H 'Connection: close'
 
-    Served by worker process 21601
-    Served by worker process 21602
-    Served by worker process 21603
-    Served by worker process 21604
+    Served by worker 0
+    Served by worker 1
+    Served by worker 2
+    Served by worker 3
     ```
 - Every connection is dispatched to a dedicated worker:
     ```bash
     curl -s 'http://127.0.0.1:8080/?[1-4]'
 
-    Served by worker process 21602
-    Served by worker process 21602
-    Served by worker process 21602
-    Served by worker process 21602
+    Served by worker 1
+    Served by worker 1
+    Served by worker 1
+    Served by worker 1
     ```
 
 ### Round Robin
@@ -83,10 +80,10 @@ Send some test requests:
     curl -s 'http://127.0.0.1:8080/?[1-4]' -H 'Connection: close'
     curl -s 'http://127.0.0.1:8080/?[1-4]'
 
-    Served by worker process 21601
-    Served by worker process 21602
-    Served by worker process 21603
-    Served by worker process 21604
+    Served by worker 0
+    Served by worker 1
+    Served by worker 2
+    Served by worker 3
     ```
 
 ### Sticky Session
@@ -115,20 +112,20 @@ Send some test requests with and without the session context:
     ```bash
     curl -s 'http://127.0.0.1:8080/?[1-4]'
 
-    Served by worker process 21601
-    Served by worker process 21602
-    Served by worker process 21603
-    Served by worker process 21604
+    Served by worker 0
+    Served by worker 1
+    Served by worker 2
+    Served by worker 3
     ```
 - Session requests are dispatched to a dedicated worker:
     ```bash
     curl -s 'http://127.0.0.1:8080/?PHPSESSID=ExampleSessionIdentifier11&[1-4]'
     curl -s 'http://127.0.0.1:8080/?[1-4]' -H 'Cookie: PHPSESSID=ExampleSessionIdentifier11'
 
-    Served by worker process 21603
-    Served by worker process 21603
-    Served by worker process 21603
-    Served by worker process 21603
+    Served by worker 2
+    Served by worker 2
+    Served by worker 2
+    Served by worker 2
     ```
 
 ## Contributing
