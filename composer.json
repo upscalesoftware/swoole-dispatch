@@ -1,7 +1,7 @@
 {
     "name": "upscale/swoole-dispatch",
     "description": "Request dispatch strategies for Swoole web-server",
-    "version": "2.1.0",
+    "version": "2.2.0",
     "keywords": [
         "Swoole", "request", "dispatch", "dispatcher", "worker",
         "round robin", "round-robin", "circular",
