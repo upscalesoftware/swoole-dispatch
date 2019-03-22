@@ -41,5 +41,28 @@ abstract class ContextualDispatch implements DispatchInterface
      * @param string $data Request packet data (0-8180 bytes)
      * @return int Worker ID number
      */
-    abstract protected function dispatch(\Swoole\Server $server, $fd, $type, $data);
+    protected function dispatch(\Swoole\Server $server, $fd, $type, $data)
+    {
+        return $this->resolveWorkerId($server, $this->extractRequestId($data));
+    }
+
+    /**
+     * Resolve given request identifier to a worker process
+     *
+     * @param \Swoole\Server $server
+     * @param string $requestId Request identifier
+     * @return int Worker ID number
+     */
+    protected function resolveWorkerId(\Swoole\Server $server, $requestId)
+    {
+        return abs(crc32($requestId) % $server->setting['worker_num']);
+    }
+
+    /**
+     * Extract request identifying information from a request message
+     *
+     * @param string $data
+     * @return string
+     */
+    abstract protected function extractRequestId($data);
 }
