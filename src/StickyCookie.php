@@ -10,7 +10,7 @@ namespace Upscale\Swoole\Dispatch;
  * Parameter passed in a query string has higher priority than the one in cookies.
  * Requests without the parameter context wll be delegated to a specified fallback strategy.
  */
-class StickyCookie implements DispatchInterface
+class StickyCookie extends ContextualDispatch
 {
     /**
      * @var DispatchInterface
@@ -28,14 +28,9 @@ class StickyCookie implements DispatchInterface
     protected $valueFormat;
 
     /**
-     * @var array
-     */
-    protected $dispatchMap = [];
-
-    /**
      * Inject dependencies
      *
-     * @param DispatchInterface $fallback Fallback strategy
+     * @param DispatchInterface $fallback Fallback dispatch strategy
      * @param string $cookieName Cookie name (and query parameter name)
      * @param string $valueFormat Cookie value PCRE pattern
      */
@@ -49,21 +44,13 @@ class StickyCookie implements DispatchInterface
     /**
      * {@inheritdoc}
      */
-    public function __invoke(\Swoole\Server $server, $fd, $type, $data)
+    protected function dispatch(\Swoole\Server $server, $fd, $type, $data)
     {
-        if (array_key_exists($fd, $this->dispatchMap)) {
-            $workerId = $this->dispatchMap[$fd];
+        $requestId = $this->extractCookieValue($data);
+        if ($requestId !== null) {
+            $workerId = $this->resolveWorkerId($server, $requestId);
         } else {
-            $requestId = $this->extractCookieValue($data);
-            if ($requestId !== null) {
-                $workerId = $this->resolveWorkerId($server, $requestId);
-            } else {
-                $workerId = $this->fallback->__invoke($server, $fd, $type, $data);
-            }
-            $this->dispatchMap[$fd] = $workerId;
-        }
-        if ($type == self::CONNECTION_CLOSE) {
-            unset($this->dispatchMap[$fd]);
+            $workerId = $this->fallback->__invoke($server, $fd, $type, $data);
         }
         return $workerId;
     }
