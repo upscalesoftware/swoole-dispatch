@@ -39,41 +39,12 @@ class StickyCookie extends DelegatedDispatch
     /**
      * {@inheritdoc}
      */
-    protected function dispatch(\Swoole\Server $server, $fd, $type, $data)
-    {
-        $requestId = $this->extractCookieValue($data);
-        if ($requestId !== null) {
-            $workerId = $this->resolveWorkerId($server, $requestId);
-        } else {
-            $workerId = parent::dispatch($server, $fd, $type, $data);
-        }
-        return $workerId;
-    }
-
-    /**
-     * Resolve given request to a worker process to serve it
-     *
-     * @param \Swoole\Server $server
-     * @param string $requestId
-     * @return int
-     */
-    protected function resolveWorkerId(\Swoole\Server $server, $requestId)
-    {
-        return abs(crc32($requestId) % $server->setting['worker_num']);
-    }
-
-    /**
-     * Extract parameter value from query string or cookies in an HTTP request message
-     *
-     * @param string $message
-     * @return string|null
-     */
-    protected function extractCookieValue($message)
+    protected function extractRequestId($data)
     {
         // Exclude request body from lookup scope
-        $message = strstr($message, "\r\n\r\n", true);
+        $data = strstr($data, "\r\n\r\n", true);
         // Query string has priority over cookies as request line precedes headers
-        if (preg_match("/\b$this->cookieName=($this->valueFormat)\b/", $message, $matches)) {
+        if (preg_match("/\b$this->cookieName=($this->valueFormat)\b/", $data, $matches)) {
             return $matches[1];
         }  
         return null;
