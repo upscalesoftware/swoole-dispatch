@@ -10,13 +10,8 @@ namespace Upscale\Swoole\Dispatch;
  * Parameter passed in a query string has higher priority than the one in cookies.
  * Requests without the parameter context wll be delegated to a specified fallback strategy.
  */
-class StickyCookie extends ContextualDispatch
+class StickyCookie extends DelegatedDispatch
 {
-    /**
-     * @var DispatchInterface
-     */
-    protected $fallback;
-    
     /**
      * @var string
      */
@@ -36,7 +31,7 @@ class StickyCookie extends ContextualDispatch
      */
     public function __construct(DispatchInterface $fallback, $cookieName, $valueFormat = '[^\s;&#]+')
     {
-        $this->fallback = $fallback;
+        parent::__construct($fallback);
         $this->cookieName = preg_quote($cookieName);
         $this->valueFormat = $valueFormat;
     }
@@ -50,7 +45,7 @@ class StickyCookie extends ContextualDispatch
         if ($requestId !== null) {
             $workerId = $this->resolveWorkerId($server, $requestId);
         } else {
-            $workerId = $this->fallback->__invoke($server, $fd, $type, $data);
+            $workerId = parent::dispatch($server, $fd, $type, $data);
         }
         return $workerId;
     }
